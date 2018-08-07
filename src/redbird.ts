@@ -3,7 +3,7 @@ import { ModuleManager } from './module_manager';
 const proxy = redbird({
     port: 80,
     secure: false,
-    // bunyan: false,
+    bunyan: false,
     ssl: {
         port:443
     }

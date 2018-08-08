@@ -33,20 +33,40 @@ export class ModuleManager<T> {
                 this.temp.set(line[0], line[1]);
             });
             // Find new Keys
-            for(const [key, val] of this.temp.entries()) {
-                if( !this.values.has(key) ) {
-                    this.values.set(key, val);
-                    this.set(key, val);
-                }
-            }
-            for(const [key, val] of this.values.entries()) {
-                if( !this.temp.has(key) ) {
-                    this.values.delete(key);
-                    this.remove(key, val);
-                }
-            }
+            this.findNewKeys();
+            this.findRemoedKeys();
+            this.findChangedKeys();
             this.temp.clear();
         });
+    }
+    findChangedKeys() {
+        for(const [key, val] of this.temp.entries()) {
+            let original = JSON.stringify(this.values.get(key));
+            let current = JSON.stringify(this.temp.get(key));
+            if(original !== current) {
+                const o = this.values.get(key);
+                const c = this.temp.get(key);
+                this.values.set(key, c);
+                this.remove(key, o);
+                this.set(key, c);
+            }
+        }
+    }
+    findNewKeys () {
+        for(const [key, val] of this.temp.entries()) {
+            if( !this.values.has(key) ) {
+                this.values.set(key, val);
+                this.set(key, val);
+            }
+        }
+    }
+    findRemoedKeys() {
+        for(const [key, val] of this.values.entries()) {
+            if( !this.temp.has(key) ) {
+                this.values.delete(key);
+                this.remove(key, val);
+            }
+        }
     }
     load() {
         try {

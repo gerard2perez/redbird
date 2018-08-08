@@ -1,6 +1,8 @@
 import * as redbird from 'redbird';
 import { ModuleManager } from './module_manager';
+import * as os from 'os';
 const proxy = redbird({
+    // cluster: os.cpus().length,
     port: 80,
     secure: false,
     bunyan: false,
@@ -9,7 +11,7 @@ const proxy = redbird({
     }
 });
 interface Server {
-    target:string
+    host:string | string[]
     options:{
         ssl:{
             redirectPort:number
@@ -20,9 +22,17 @@ interface Server {
     }
 }
 const Servers = new ModuleManager<Server>('proxy.yaml');
-Servers.set = (key:string, value:Server) =>{
-    proxy.register(key, value.target, value.options);
+Servers.set = (target:string, server:Server) =>{
+    let sources:string[] = [].concat(server.host);
+    console.log(`Add: ${sources.join(',')} => ${target}`);
+    for(const source of sources) {
+        proxy.register(source, target, server.options); 
+    }
 };
-Servers.remove = (key:string, value:Server) =>{
-    proxy.unregister(key, value.target);
+Servers.remove = (target:string, server:Server) =>{
+    let sources:string[] = [].concat(server.host);
+    console.log(`Remove: ${sources.join(',')} => ${target}`);
+    for(const source of sources) {
+        proxy.unregister(source, target);
+    }
 };

@@ -40,7 +40,7 @@ function build () {
     hosts.forEach((host:string, domain:string) => {
         file.set(domain, host);
     });
-    for(const [key, host] of Hosts.values.entries() ) {
+    for(const [key, host] of HostsFile.values.entries() ) {
         if(!file.has(key)) {
             file.set(key, host);
         }
@@ -51,12 +51,12 @@ function build () {
     });
     return array_res.join('\n');
 }
-const Hosts = new ModuleManager<string>('hosts.yaml');
-Hosts.remove = (key:string) =>{
+export const HostsFile = new ModuleManager<string>('hosts.yaml');
+HostsFile.remove = (key:string) =>{
     if (hosts.has(key))
         hosts.delete(key);
     writeFileSync(host_location(), build());
 }
-Hosts.set = function (key:string, host:string) {
+HostsFile.set = function (key:string, host:string) {
     writeFileSync(host_location(), build());
 }

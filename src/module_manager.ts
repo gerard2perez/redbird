@@ -1,6 +1,6 @@
 import { join } from "path";
 import { watch, FSWatcher } from "chokidar";
-import { readFileSync, createWriteStream, existsSync, mkdirSync, writeFileSync } from "fs";
+import { readFileSync, createWriteStream, existsSync, mkdirSync, writeFileSync, write, writeFile } from "fs";
 import * as yaml from 'js-yaml';
 
 const KRBP = join('c:', 'kaen-redbird');
@@ -29,7 +29,7 @@ export class ModuleManager<T> {
         })
         .on('all', (event, path) => {
             this.temp.clear();
-            this.load().forEach(line=>{
+            this.transform().forEach(line=>{
                 this.temp.set(line[0], line[1]);
             });
             // Find new Keys
@@ -38,6 +38,18 @@ export class ModuleManager<T> {
             this.findChangedKeys();
             this.temp.clear();
         });
+    }
+    add(source, obj:any) {
+        let entry = {[source]: obj};
+        let rawEntry = yaml.safeDump(entry, {noCompatMode:true, condenseFlow:true});
+        let raw = rawEntry + this.load();
+        writeFileSync(this.filepath, raw);
+    }
+    delete(source, obj) {
+        let entry = {[source]: obj};
+        let rawEntry = yaml.safeDump(entry);
+        let file = this.load().replace(rawEntry, '');
+        writeFileSync(this.filepath, file);
     }
     findChangedKeys() {
         for(const [key, val] of this.temp.entries()) {
@@ -68,10 +80,20 @@ export class ModuleManager<T> {
             }
         }
     }
-    load() {
+    private load():string {
         try {
-            const file = readFileSync(this.filepath, 'utf8');
-            var doc = yaml.safeLoad(file);
+            return readFileSync(this.filepath, 'utf8');
+        } catch (e) {
+            log.write(e+'\n\n');
+            return '{}';
+        }
+    }
+    json() {
+        return yaml.safeLoad(this.load());
+    }
+    transform() {
+        try {
+            let doc = this.json();
             return Object.keys(doc).map(k=>[k, doc[k]]) as [string, T][];
         } catch (e) {
             log.write(e+'\n\n');

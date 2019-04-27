@@ -40,7 +40,7 @@ const managers = {
                 status = 500;
             } else {
                 let entry:any = {host:body.target};
-                if(Object.keys(body.options).length)entry.options = body.options;
+                if(body.options && Object.keys(body.options).length)entry.options = body.options;
                 ServerFile.add(body.source, entry);
                 status = 201;
             }
@@ -57,7 +57,7 @@ const managers = {
             } else {
                 ServerFile.delete(body.source, source);
                 let entry:any = {host:body.target};
-                if(Object.keys(body.options).length)entry.options = body.options;
+                if(body.options && Object.keys(body.options).length)entry.options = body.options;
                 ServerFile.add(body.source, entry);
                 status = 200;
             }

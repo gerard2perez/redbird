@@ -1,6 +1,6 @@
 {
   "name": "@gerard2p/redbird",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Daemon os the redbird reverse proxy",
   "main": "index.js",
   "scripts": {

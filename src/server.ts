@@ -1,6 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { Server, ServerFile } from './redbird';
 import { HostsFile } from './hosts';
+import { posix } from 'path';
 enum Operation {
     add = 'POST',
     update = 'UPDATE',
@@ -17,6 +18,14 @@ async function rawbody(stream: IncomingMessage) {
     }) as Promise<Buffer>;
 }
 const managers = {
+    version: {
+        async GET(body:any):Promise<[any, number]> {
+            return [{
+                version: require(posix.join(process.cwd(), 'package.json')).version,
+                redbird: require(posix.join(process.cwd(),'node_modules/redbird/', 'package.json')).version
+            }, 200];
+        }
+    },
     proxy: {
         async DELETE(body:any):Promise<[any, number]> {
             let configuration = ServerFile.json();
@@ -115,13 +124,21 @@ async function getBody(req:IncomingMessage) {
     return JSON.parse((await rawbody(req)).toString('utf-8'));
 }
 let server = createServer( async (req,res) => {
-    let [_, mode] = req.url.toLowerCase().split('/');
-    let BODY = {};
-    if(['POST', 'PUT', 'DELETE'].includes(req.method))BODY = await getBody(req);
-    let [response, status=200] = await managers[mode][req.method](BODY);
-    res.setHeader('content-type', 'application/json');
-    res.statusCode = status;
-    res.end(JSON.stringify(response));
+    try{
+        let [_, mode] = req.url.toLowerCase().split('/');
+        mode = mode || 'version';
+        let BODY = {};
+        if(['POST', 'PUT', 'DELETE'].includes(req.method))BODY = await getBody(req);
+        let [response, status=200] = await managers[mode][req.method](BODY);
+        res.setHeader('content-type', 'application/json');
+        res.statusCode = status;
+        res.end(JSON.stringify(response));
+    }catch(error) {
+        console.log(error);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error}));
+    }
+    
 });
 
 server.listen(6060);

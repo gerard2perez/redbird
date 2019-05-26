@@ -3,6 +3,7 @@ import { posix } from "path";
 
 let OPTIONS = { 
     programPath: posix.join(__dirname, 'run.js'),
+    programArgs: [posix.resolve(__dirname, '../index.js')]
  };
 
 add('@gerard2p-redbird', OPTIONS, function(error) {
